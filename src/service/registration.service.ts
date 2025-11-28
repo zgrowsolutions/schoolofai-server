@@ -1,3 +1,4 @@
+import ExcelJS from "exceljs";
 import { db } from "../config/database";
 import { registration } from "../db/schema/registration";
 import { InferInsertModel, eq, and, sql, or, ilike } from "drizzle-orm";
@@ -13,7 +14,10 @@ interface ListRegistrationParams {
   course?: string;
   campaign?: string;
 }
-
+interface DownloadParams {
+  course?: string;
+  campaign?: string;
+}
 export class RegistrationService {
   static async create(data: NewRegistration) {
     try {
@@ -125,5 +129,52 @@ export class RegistrationService {
       console.error("Error:", error);
       throw error;
     }
+  }
+
+  static async downloadExcel({ course, campaign }: DownloadParams) {
+    const filters = [];
+
+    if (course) filters.push(eq(registration.course, course));
+    if (campaign) filters.push(eq(registration.campaign, campaign));
+
+    const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+    const rows = await db
+      .select()
+      .from(registration)
+      .where(whereClause)
+      .orderBy(sql`${registration.id} DESC`);
+
+    // --- Create Excel ---
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Registrations");
+
+    // Header
+    sheet.columns = [
+      { header: "ID", key: "id", width: 10 },
+      { header: "Name", key: "name", width: 25 },
+      { header: "Email", key: "email", width: 30 },
+      { header: "Mobile", key: "mobile", width: 15 },
+      { header: "Course", key: "course", width: 20 },
+      { header: "Campaign", key: "campaign", width: 20 },
+      { header: "Created At", key: "created_at", width: 20 },
+    ];
+
+    // Add rows
+    rows.forEach((r) => {
+      sheet.addRow({
+        id: r.id,
+        name: r.name,
+        email: r.email,
+        mobile: r.mobile,
+        course: r.course,
+        campaign: r.campaign,
+        created_at: r.created_at?.toISOString(),
+      });
+    });
+
+    // Return Excel as buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
   }
 }

@@ -66,3 +66,29 @@ export const Delete = async (
     next(error);
   }
 };
+
+export const Download = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const buffer = await RegistrationService.downloadExcel({
+      course: req.query.course as string,
+      campaign: req.query.campaign as string,
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=registrations.xlsx`
+    );
+    res.send(buffer);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
