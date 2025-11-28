@@ -1,0 +1,29 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_baseurl}}/admin/users/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "name":"Kavin",
+    "email":"kavin@gmail.com",
+    "mobile":"7788998855",
+    "password":"password"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{api_baseurl}}/admin/users/9f9aeeb0-e648-40c4-861e-9f7d5e9bdcd6
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "mobile":"7788998899",
+    "name":"umamaheswari"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

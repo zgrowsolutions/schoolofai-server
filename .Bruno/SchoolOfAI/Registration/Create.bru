@@ -1,0 +1,26 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_baseurl}}/public/registration
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name":"Pugazhenthi",
+    "email":"pugazhonline@gmail.com",
+    "mobile":"9976412129",
+    "course":"ai Stack",
+    "campaign":"fb 2025"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

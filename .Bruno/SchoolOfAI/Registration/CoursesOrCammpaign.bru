@@ -1,0 +1,24 @@
+meta {
+  name: CoursesOrCammpaign
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{api_baseurl}}/admin/registration/course?filter=course
+  body: json
+  auth: bearer
+}
+
+params:query {
+  filter: course
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
