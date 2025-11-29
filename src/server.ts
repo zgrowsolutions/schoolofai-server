@@ -5,7 +5,11 @@ import { errorHandler } from "./middlewares/error_handler.middleware";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://admin.learn.schoolofai.io", "http://localhost:5173"],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
