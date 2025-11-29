@@ -1,0 +1,43 @@
+name: Deploy SchoolofAI_Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (optional for trigger)
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+
+            
+            APP_DIR=/var/www/schoolofai-v2/server
+            GITHUB_USER=zgrowsolutions
+            TOKEN=${{ secrets.GH_TOKEN }}
+
+            sudo rm -rf $APP_DIR
+            sudo mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+            sudo git clone https://$GITHUB_USER:$TOKEN@github.com/zgrowsolutions/zlms-server.git .
+            sudo chown -R ubuntu:ubuntu "$APP_DIR"
+            npm install
+            
+            # Start or restart app using PM2
+            PM2_APP_NAME=schoolofai-server:9090
+            pm2 restart "$PM2_APP_NAME" || pm2 start npm --name "$PM2_APP_NAME" -- start
+            pm2 save
+          EOF
