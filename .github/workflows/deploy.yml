@@ -32,7 +32,7 @@ jobs:
             sudo rm -rf $APP_DIR
             sudo mkdir -p "$APP_DIR"
             cd "$APP_DIR"
-            sudo git clone https://$GITHUB_USER:$TOKEN@github.com/zgrowsolutions/zlms-server.git .
+            sudo git clone https://$GITHUB_USER:$TOKEN@github.com/zgrowsolutions/schoolofai-server.git .
             sudo chown -R ubuntu:ubuntu "$APP_DIR"
             npm install
             
