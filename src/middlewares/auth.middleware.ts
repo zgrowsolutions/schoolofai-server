@@ -40,3 +40,31 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError.Unauthorized("Invalid or expired token"));
   }
 };
+
+export const isAI365User = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return next(createHttpError.Unauthorized("Authorization header missing"));
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return next(createHttpError.Unauthorized("Token missing"));
+    }
+
+    const decoded = jwt.verify(token, config.admin_jwt_secret) as JWTPayload;
+    if (decoded.role !== "ai365_user") {
+      return next(createHttpError.Forbidden("Registered users only"));
+    }
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return next(createHttpError.Unauthorized("Invalid or expired token"));
+  }
+};

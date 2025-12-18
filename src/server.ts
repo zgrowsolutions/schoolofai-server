@@ -7,7 +7,12 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["https://admin.schoolofai.io", "http://localhost:5173"],
+    origin: [
+      "https://admin.schoolofai.io",
+      "https://www.schoolofai.io",
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ],
   })
 );
 app.use(express.json());
