@@ -1,0 +1,24 @@
+meta {
+  name: GetById
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{api_baseurl}}/admin/ai365/videos/:id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 6434ed2f-a5c7-47e4-a331-b7fa4a6ed8ce
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

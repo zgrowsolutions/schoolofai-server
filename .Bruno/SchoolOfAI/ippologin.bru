@@ -1,0 +1,15 @@
+meta {
+  name: ippologin
+  type: http
+  seq: 5
+}
+
+get {
+  url: https://api.ipposales.com/admin/auth/login
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

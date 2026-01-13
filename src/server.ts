@@ -10,7 +10,10 @@ app.use(
     origin: [
       "https://admin.schoolofai.io",
       "https://www.schoolofai.io",
+      "https://ai365.schoolofai.io",
+      "https://app.ai365.schoolofai.io",
       "http://localhost:5173",
+      "http://localhost:5174",
       "http://localhost:3000",
     ],
   })

@@ -1,7 +1,7 @@
 import { db } from "../config/database";
 import { users } from "../db/schema/ai365_user";
 import { hashPassword } from "../lib/auth.helper";
-import { desc, InferInsertModel, eq, ne, and } from "drizzle-orm";
+import { InferInsertModel, eq, ne, and, or, ilike, sql } from "drizzle-orm";
 import createHttpError from "http-errors";
 
 type NewUser = InferInsertModel<typeof users>;
@@ -11,6 +11,12 @@ type UpdateUserInput = {
   mobile?: string;
   password?: string;
 };
+
+interface ListUserParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
 
 export class UserService {
   static async create(user: NewUser) {
@@ -48,19 +54,58 @@ export class UserService {
     }
   }
 
-  static async list() {
+  static async list({ page = 1, limit = 10, search }: ListUserParams) {
     try {
-      const usersList = await db
+      const offset = (page - 1) * limit;
+
+      // --- Build filters ---
+      const filters = [];
+
+      // Keyword search (applies on multiple fields)
+      if (search) {
+        filters.push(
+          or(
+            ilike(users.name, `%${search}%`),
+            ilike(users.email, `%${search}%`),
+            ilike(users.mobile, `%${search}%`)
+          )
+        );
+      }
+
+      const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+      // --- Query ---
+      const rows = await db
         .select({
           id: users.id,
           name: users.name,
           email: users.email,
           mobile: users.mobile,
+          active: users.active,
+          allow_login: users.allow_login,
           created_at: users.created_at,
         })
         .from(users)
-        .orderBy(desc(users.created_at));
-      return usersList;
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(sql`${users.created_at} DESC`);
+
+      // --- Total count ---
+      const [{ count }] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users)
+        .where(whereClause);
+
+      return {
+        data: rows,
+        pagination: {
+          page,
+          limit,
+          total: count,
+          totalPages: Math.ceil(count / limit),
+        },
+      };
     } catch (error) {
       console.error("Error:", error);
       throw error;

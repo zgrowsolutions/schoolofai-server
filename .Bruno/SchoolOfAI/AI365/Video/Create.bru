@@ -1,0 +1,29 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_baseurl}}/admin/ai365/videos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "title":"First AI Video",
+    "description":"Hello this is my first Video Content",
+    "video":"abc123",
+    "status":"draft"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

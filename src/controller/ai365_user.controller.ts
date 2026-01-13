@@ -16,8 +16,12 @@ export const Create = async (
 
 export const List = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = await UserService.list();
-    res.json(users);
+    const data = await UserService.list({
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      search: req.query.search as string,
+    });
+    res.json(data);
   } catch (error) {
     console.log(error);
     next(error);

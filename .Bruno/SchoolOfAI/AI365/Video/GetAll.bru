@@ -1,0 +1,20 @@
+meta {
+  name: GetAll
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{api_baseurl}}/admin/ai365/videos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
