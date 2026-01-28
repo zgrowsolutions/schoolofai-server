@@ -1,6 +1,6 @@
 import { db } from "../config/database";
 import { videos } from "../db/schema/ai365_videos";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export type CreateVideoInput = {
   title: string;
@@ -48,7 +48,7 @@ export class VideosService {
         description:
           data.description === undefined
             ? undefined // don’t touch
-            : data.description ?? null, // allow null
+            : (data.description ?? null), // allow null
         publish_at: data.publish_at ? new Date(data.publish_at) : undefined, // optional, defaultNow() applies
         updated_at: new Date(), // from timestamps helper
       })

@@ -19,7 +19,7 @@ export const subscriptions = pgTable("subscriptions", {
       onUpdate: "cascade",
     }),
 
-  plan: varchar("plan", { length: 50 }).notNull(),
+  plan: varchar("plan", { length: 50 }).notNull(), // annual, monthly
 
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, cancelled, expired
 

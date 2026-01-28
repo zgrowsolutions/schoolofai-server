@@ -37,7 +37,7 @@ jobs:
             npm install
             
             # Start or restart app using PM2
-            PM2_APP_NAME=schoolofai-server:9090
-            pm2 restart "$PM2_APP_NAME" || pm2 start npm --name "$PM2_APP_NAME" -- start
+            PM2_APP_NAME=schoolofai-server@9090
+            pm2 reload "$PM2_APP_NAME" || pm2 start /var/www/pm2/ecosystem.config.js --only "$PM2_APP_NAME"
             pm2 save
           EOF
