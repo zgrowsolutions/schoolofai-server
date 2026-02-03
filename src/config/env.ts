@@ -12,6 +12,8 @@ export const config = {
   node_env: process.env.NODE_ENV || "development",
   db_url: process.env.DATABASE_URL as string,
   port: process.env.PORT || 3000,
+  server_url: process.env.SERVER_URL || "",
+  ai365_client: process.env.AI365_CLIENT || "",
   admin_jwt_secret: process.env.ADMIN_JWT_SECRET || "default_admin_secret",
   easebuzz_key: process.env.EASEBUZZ_KEY ?? "",
   easebuzz_salt: process.env.EASEBUZZ_SALT ?? "",

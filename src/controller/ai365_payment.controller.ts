@@ -84,8 +84,7 @@ export const InitiatePayment = async (
       salt;
     const hash = sha512(hash_string);
 
-    const surl = "https://api.schoolofai.io/ai365/hooks/easebuzz/surl";
-    const furl = "https://api.schoolofai.io/ai365/hooks/easebuzz/furl";
+    const callbackurl = `${config.server_url}/ai365/hooks/easebuzz/callback`;
 
     const encodedParams = new URLSearchParams();
     encodedParams.set("key", config.easebuzz_key);
@@ -95,11 +94,9 @@ export const InitiatePayment = async (
     encodedParams.set("firstname", firstname);
     encodedParams.set("phone", String(9976412129));
     encodedParams.set("email", email);
-    encodedParams.set("surl", surl);
-    encodedParams.set("furl", furl);
+    encodedParams.set("surl", callbackurl);
+    encodedParams.set("furl", callbackurl);
     encodedParams.set("hash", hash);
-
-    console.log("HASH:", hash);
 
     const url =
       config.easebuzz_env === "live"
