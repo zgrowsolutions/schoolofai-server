@@ -25,12 +25,14 @@ export const InitiatePayment = async (
     const user = await UserService.findUserById(userId);
     if (!user) throw createHttpError[400]("User not found");
 
-    console.log(user);
+    let price = 100;
+    if (plan === "monthly") price = 299;
+    else if (plan === "annual") price = 2999;
 
     const txn_id = uuidv4();
     const key = config.easebuzz_key,
       txnid = txn_id,
-      amount = 200,
+      amount = price,
       productinfo = "AI365",
       firstname = "Pugazhenthi",
       email = "pugazhonline@gmail.com",
