@@ -10,7 +10,8 @@
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "ts-node src/db/seed/seed.ts"
+    "db:seed": "ts-node src/db/seed/seed.ts",
+    "db:introspect": "drizzle-kit introspect"
   },
   "keywords": [],
   "author": "",
@@ -18,16 +19,21 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "axios": "^1.13.4",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "cross-env": "^10.1.0",
+    "dayjs": "^1.11.19",
+    "decimal.js": "^10.6.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.6",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "http-errors": "^2.0.0",
+    "js-sha512": "^0.9.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
+    "uuid": "^13.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { VideosService } from "../service/ai365_video.service";
+import createHttpError from "http-errors";
 
 export const Create = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     await VideosService.create(req.body);
@@ -20,7 +21,7 @@ export const Create = async (
 export const GetAll = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const videos = await VideosService.findAll();
@@ -33,7 +34,7 @@ export const GetAll = async (
 export const GetById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const video = await VideosService.findById(req.params.id);
@@ -51,7 +52,7 @@ export const GetById = async (
 export const Update = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const video = await VideosService.update(req.params.id, req.body);
@@ -72,7 +73,7 @@ export const Update = async (
 export const Delete = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     await VideosService.delete(req.params.id);
@@ -80,6 +81,21 @@ export const Delete = async (
     res.json({
       message: "Video deleted successfully",
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const VideoByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw createHttpError[400]("User not found");
+    const videos = await VideosService.findVideosByUser(userId);
+    res.json(videos);
   } catch (error) {
     next(error);
   }

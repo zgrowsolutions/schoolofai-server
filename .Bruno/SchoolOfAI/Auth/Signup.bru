@@ -1,11 +1,11 @@
 meta {
-  name: Login
+  name: Signup
   type: http
-  seq: 2
+  seq: 3
 }
 
 post {
-  url: {{api_baseurl}}/ai365/auth/login
+  url: {{api_baseurl}}/admin/auth
   body: json
   auth: inherit
 }
@@ -18,7 +18,7 @@ body:json {
 }
 
 script:post-response {
-  bru.setEnvVar('access_token', res.body.token)
+  bru.setEnvVar("access_token", res.body.token)
 }
 
 settings {

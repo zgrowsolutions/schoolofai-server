@@ -1,0 +1,26 @@
+meta {
+  name: UpdateMe
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{api_baseurl}}/ai365/auth/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "password":"pass123"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

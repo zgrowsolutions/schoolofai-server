@@ -4,7 +4,7 @@ import { config } from "../config/env";
 import createHttpError from "http-errors";
 
 interface JWTPayload {
-  id: number;
+  id: string;
   role: string;
 }
 
@@ -44,7 +44,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 export const isAI365User = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const authHeader = req.headers.authorization;

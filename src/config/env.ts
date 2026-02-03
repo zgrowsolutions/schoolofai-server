@@ -13,4 +13,7 @@ export const config = {
   db_url: process.env.DATABASE_URL as string,
   port: process.env.PORT || 3000,
   admin_jwt_secret: process.env.ADMIN_JWT_SECRET || "default_admin_secret",
+  easebuzz_key: process.env.EASEBUZZ_KEY ?? "",
+  easebuzz_salt: process.env.EASEBUZZ_SALT ?? "",
+  easebuzz_env: process.env.EASEBUZZ_ENV ?? "test",
 };

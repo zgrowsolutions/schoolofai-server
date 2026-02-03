@@ -1,0 +1,20 @@
+meta {
+  name: MyVideos
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{api_baseurl}}/ai365/subscription/video/362ce3c2-39a8-4a62-b235-236a2462339f
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

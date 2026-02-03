@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1765298857689,
-      "tag": "0000_deep_jimmy_woo",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1765694795326,
-      "tag": "0001_wooden_master_chief",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1768286270737,
-      "tag": "0002_many_sleeper",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1768321960992,
-      "tag": "0003_purple_solo",
+      "when": 1770089391700,
+      "tag": "0000_fearless_mister_sinister",
       "breakpoints": true
     }
   ]

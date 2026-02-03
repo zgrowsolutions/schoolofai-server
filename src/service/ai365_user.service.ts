@@ -3,6 +3,9 @@ import { users } from "../db/schema/ai365_user";
 import { hashPassword } from "../lib/auth.helper";
 import { InferInsertModel, eq, ne, and, or, ilike, sql } from "drizzle-orm";
 import createHttpError from "http-errors";
+import { SubscriptionsService } from "./ai365_subscriptions.service";
+import { v4 as uuidv4 } from "uuid";
+import dayjs from "dayjs";
 
 type NewUser = InferInsertModel<typeof users>;
 type UpdateUserInput = {
@@ -28,7 +31,7 @@ export class UserService {
 
       if (existingEmail) {
         throw createHttpError.NotAcceptable(
-          `User already exist with email ${user.email}`
+          `User already exist with email ${user.email}`,
         );
       }
 
@@ -39,13 +42,27 @@ export class UserService {
 
       if (existingMobile) {
         throw createHttpError.NotAcceptable(
-          `User already exist with mobile ${user.mobile}`
+          `User already exist with mobile ${user.mobile}`,
         );
       }
-
+      const userId = uuidv4();
       const result = await db.insert(users).values({
+        id: userId,
         ...user,
         password: hashPassword(user.password),
+      });
+
+      const now = dayjs();
+      const plusOneYear = now.add(1, "year");
+
+      SubscriptionsService.create({
+        userId,
+        plan: "annual",
+        status: "active",
+        price: 3500,
+        isTrial: false,
+        startDate: now.toDate(),
+        endDate: plusOneYear.toDate(),
       });
       return result;
     } catch (error) {
@@ -67,8 +84,8 @@ export class UserService {
           or(
             ilike(users.name, `%${search}%`),
             ilike(users.email, `%${search}%`),
-            ilike(users.mobile, `%${search}%`)
-          )
+            ilike(users.mobile, `%${search}%`),
+          ),
         );
       }
 
@@ -176,5 +193,10 @@ export class UserService {
       .returning();
 
     return updated[0];
+  }
+
+  static async findUserById(userId: string) {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    return user || null;
   }
 }

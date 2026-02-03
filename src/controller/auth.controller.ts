@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../service/auth.service";
+
 import createHttpError from "http-errors";
 
 export const Login = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const userCreadentials = req.body;

@@ -1,0 +1,16 @@
+meta {
+  name: easebuzz-hook
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{api_baseurl}}/ai365/hooks/easebuzz
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,4 +1,11 @@
-import { pgTable, varchar, text, uuid, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  varchar,
+  text,
+  uuid,
+  timestamp,
+  boolean,
+} from "drizzle-orm/pg-core";
 import { timestamps } from "../../lib/db.helper";
 
 export const videos = pgTable("ai365_videos", {
@@ -10,5 +17,6 @@ export const videos = pgTable("ai365_videos", {
   publish_at: timestamp("publish_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
+  demo: boolean("demo").default(false),
   ...timestamps,
 });

@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import { db } from "../config/database";
 import { subscriptions } from "../db/schema/ai365_subscription";
 import { eq, desc, and } from "drizzle-orm";
@@ -57,11 +58,23 @@ export class SubscriptionsService {
 
   /** Get subscriptions by user */
   static async findByUserId(userId: string) {
-    return db
-      .select()
+    const data = await db
+      .select({
+        id: subscriptions.id,
+        plan: subscriptions.plan,
+        price: subscriptions.price,
+        start: subscriptions.startDate,
+        end: subscriptions.endDate,
+        status: subscriptions.status,
+      })
       .from(subscriptions)
       .where(eq(subscriptions.userId, userId))
       .orderBy(desc(subscriptions.createdAt));
+
+    return data.map((i) => ({
+      ...i,
+      price: new Decimal(i.price),
+    }));
   }
 
   /** Get active subscription for user */

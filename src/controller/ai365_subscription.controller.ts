@@ -1,0 +1,19 @@
+import { Request, Response, NextFunction } from "express";
+import { SubscriptionsService } from "../service/ai365_subscriptions.service";
+import createHttpError from "http-errors";
+
+export const MySubscription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw createHttpError[400]("User not found");
+    const data = await SubscriptionsService.findByUserId(userId);
+    res.json(data);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};

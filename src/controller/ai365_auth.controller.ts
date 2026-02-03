@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../service/ai365_auth.service";
+import { UserService } from "../service/ai365_user.service";
 import createHttpError from "http-errors";
 
 export const Login = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const userCreadentials = req.body;
@@ -24,6 +25,23 @@ export const Me = async (req: Request, res: Response, next: NextFunction) => {
     }
     const user = await AuthService.me(userId.toString());
     res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const Update = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return next(createHttpError.Unauthorized("User ID missing in request"));
+    }
+    await UserService.update(userId, req.body);
+    res.json({ message: "Updated successfully" });
   } catch (error) {
     next(error);
   }

@@ -1,13 +1,25 @@
 import { db } from "../config/database";
 import { videos } from "../db/schema/ai365_videos";
-import { eq, desc } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  and,
+  lte,
+  gte,
+  or,
+  isNull,
+  InferSelectModel,
+} from "drizzle-orm";
+import { subscriptions } from "../db/schema/ai365_subscription";
 
+type Video = InferSelectModel<typeof videos>;
 export type CreateVideoInput = {
   title: string;
   description?: string | null;
   video: string;
   status: string;
   publish_at?: Date;
+  demo?: boolean;
 };
 
 export class VideosService {
@@ -21,6 +33,7 @@ export class VideosService {
         video: data.video,
         status: data.status,
         publish_at: data.publish_at ? new Date(data.publish_at) : undefined, // optional, defaultNow() applies
+        demo: data.demo ?? false,
       })
       .returning();
 
@@ -62,5 +75,37 @@ export class VideosService {
   static async delete(id: string) {
     await db.delete(videos).where(eq(videos.id, id));
     return true;
+  }
+
+  static async findVideosByUser(userId: string) {
+    const now = new Date();
+
+    const freeVideos = await db
+      .select()
+      .from(videos)
+      .where(and(eq(videos.demo, true), eq(videos.status, "published")));
+
+    const activeSubscription = await db
+      .select()
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.status, "active"),
+          lte(subscriptions.startDate, now),
+          or(gte(subscriptions.endDate, now), isNull(subscriptions.endDate)),
+        ),
+      );
+
+    let premiumVideo: Video[] = [];
+
+    if (activeSubscription.length > 0)
+      premiumVideo = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.status, "published"), eq(videos.demo, false)));
+
+    console.log(activeSubscription);
+    return { demo: freeVideos, premium: premiumVideo };
   }
 }

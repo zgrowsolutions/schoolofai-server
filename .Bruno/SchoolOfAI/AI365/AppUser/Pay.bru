@@ -1,0 +1,26 @@
+meta {
+  name: Pay
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{api_baseurl}}/ai365/payment/init
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "plan":"monthly"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
