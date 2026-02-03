@@ -98,6 +98,8 @@ export const InitiatePayment = async (
     encodedParams.set("furl", furl);
     encodedParams.set("hash", hash);
 
+    console.log("HASH:", hash);
+
     const url =
       config.easebuzz_env === "live"
         ? "https://pay.easebuzz.in/payment/initiateLink"
@@ -146,6 +148,7 @@ export const EasebuzzHook = async (
 ) => {
   try {
     console.log(req.body);
+
     res.json({ message: "hook called" });
   } catch (error) {
     console.log(error);
