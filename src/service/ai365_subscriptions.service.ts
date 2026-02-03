@@ -2,7 +2,7 @@ import Decimal from "decimal.js";
 import { db } from "../config/database";
 import { subscriptions } from "../db/schema/ai365_subscription";
 import { eq, desc, and, sql } from "drizzle-orm";
-
+import { users } from "../db/schema/ai365_user";
 /** Create subscription input */
 export type CreateSubscriptionInput = {
   userId: string;
@@ -41,8 +41,24 @@ export class SubscriptionsService {
   /** Get all subscriptions */
   static async findAll() {
     return db
-      .select()
+      .select({
+        id: subscriptions.id,
+        userEmail: users.email,
+        userName: users.name,
+        plan: subscriptions.plan,
+        price: subscriptions.price,
+        start: subscriptions.startDate,
+        end: subscriptions.endDate,
+        status: sql<string>`
+        CASE
+          WHEN ${subscriptions.endDate} IS NULL THEN 'active'
+          WHEN ${subscriptions.endDate} > now() THEN 'active'
+          ELSE 'expired'
+        END
+      `.as("is_active"),
+      })
       .from(subscriptions)
+      .innerJoin(users, eq(subscriptions.userId, users.id))
       .orderBy(desc(subscriptions.createdAt));
   }
 

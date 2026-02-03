@@ -1,0 +1,20 @@
+meta {
+  name: Subsction
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{api_baseurl}}/admin/ai365/subscriptions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

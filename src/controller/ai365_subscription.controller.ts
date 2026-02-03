@@ -17,3 +17,17 @@ export const MySubscription = async (
     next(error);
   }
 };
+
+export const FindAll = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const data = await SubscriptionsService.findAll();
+    res.json(data);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
