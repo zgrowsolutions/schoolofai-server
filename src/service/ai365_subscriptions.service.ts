@@ -1,7 +1,7 @@
 import Decimal from "decimal.js";
 import { db } from "../config/database";
 import { subscriptions } from "../db/schema/ai365_subscription";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 /** Create subscription input */
 export type CreateSubscriptionInput = {
@@ -65,11 +65,17 @@ export class SubscriptionsService {
         price: subscriptions.price,
         start: subscriptions.startDate,
         end: subscriptions.endDate,
-        status: subscriptions.status,
+        status: sql<string>`
+        CASE
+          WHEN ${subscriptions.endDate} IS NULL THEN 'active'
+          WHEN ${subscriptions.endDate} > now() THEN 'active'
+          ELSE 'expired'
+        END
+      `.as("is_active"),
       })
       .from(subscriptions)
       .where(eq(subscriptions.userId, userId))
-      .orderBy(desc(subscriptions.createdAt));
+      .orderBy(desc(subscriptions.endDate));
 
     return data.map((i) => ({
       ...i,

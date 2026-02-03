@@ -84,14 +84,9 @@ export const InitiatePayment = async (
       salt;
     const hash = sha512(hash_string);
 
-    const surl =
-      config.easebuzz_env === "live"
-        ? "https://app.ai365.schoolofai.io/console/learning"
-        : "http://localhost:5173/console/learning";
+    const surl = "https://app.ai365.schoolofai.io/console/learning";
     const furl =
-      config.easebuzz_env === "live"
-        ? "https://app.ai365.schoolofai.io/console/learning"
-        : "http://localhost:5173/console/learning";
+      "https://app.ai365.schoolofai.io/console/account?pament=failed";
 
     const encodedParams = new URLSearchParams();
     encodedParams.set("key", config.easebuzz_key);
