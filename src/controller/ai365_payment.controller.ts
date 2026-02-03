@@ -84,9 +84,8 @@ export const InitiatePayment = async (
       salt;
     const hash = sha512(hash_string);
 
-    const surl = "https://app.ai365.schoolofai.io/console/learning";
-    const furl =
-      "https://app.ai365.schoolofai.io/console/account?pament=failed";
+    const surl = "https://api.schoolofai.io/ai365/hooks/easebuzz/surl";
+    const furl = "https://api.schoolofai.io/ai365/hooks/easebuzz/furl";
 
     const encodedParams = new URLSearchParams();
     encodedParams.set("key", config.easebuzz_key);
