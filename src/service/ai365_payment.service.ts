@@ -42,6 +42,14 @@ export class PaymentService {
     return result;
   }
 
+  static async findPaymentByTxnid(txnid: string) {
+    const [result] = await db
+      .select()
+      .from(payment)
+      .where(eq(payment.txnid, txnid));
+
+    return result || null;
+  }
   //   // ✅ Get all payments for a user
   //   async getPaymentsByUser(userId: string) {
   //     return db

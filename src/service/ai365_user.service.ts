@@ -3,9 +3,7 @@ import { users } from "../db/schema/ai365_user";
 import { hashPassword } from "../lib/auth.helper";
 import { InferInsertModel, eq, ne, and, or, ilike, sql } from "drizzle-orm";
 import createHttpError from "http-errors";
-import { SubscriptionsService } from "./ai365_subscriptions.service";
 import { v4 as uuidv4 } from "uuid";
-import dayjs from "dayjs";
 
 type NewUser = InferInsertModel<typeof users>;
 type UpdateUserInput = {
@@ -52,18 +50,6 @@ export class UserService {
         password: hashPassword(user.password),
       });
 
-      const now = dayjs();
-      const plusOneYear = now.add(1, "year");
-
-      SubscriptionsService.create({
-        userId,
-        plan: "annual",
-        status: "active",
-        price: 3500,
-        isTrial: false,
-        startDate: now.toDate(),
-        endDate: plusOneYear.toDate(),
-      });
       return result;
     } catch (error) {
       console.error("Error:", error);

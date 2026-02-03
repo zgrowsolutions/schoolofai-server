@@ -7,6 +7,8 @@ import { URLSearchParams } from "node:url";
 import { config } from "../config/env";
 import { UserService } from "../service/ai365_user.service";
 import { PaymentService } from "../service/ai365_payment.service";
+import { SubscriptionsService } from "../service/ai365_subscriptions.service";
+import dayjs from "dayjs";
 
 export const InitiatePayment = async (
   req: Request,
@@ -16,6 +18,9 @@ export const InitiatePayment = async (
   try {
     const userId = req.user?.id;
     const { plan } = req.body;
+    if (plan !== "monthly" && plan !== "annual")
+      throw createHttpError[400]("Invalid plan");
+
     if (!userId) throw createHttpError[400]("User not found");
     const user = await UserService.findUserById(userId);
     if (!user) throw createHttpError[400]("User not found");
@@ -147,9 +152,33 @@ export const EasebuzzHook = async (
   next: NextFunction,
 ) => {
   try {
-    console.log(req.body);
+    const { status, txnid, mode } = req.body;
 
-    res.json({ message: "hook called" });
+    if (status !== "success") return res.sendStatus(200);
+
+    await PaymentService.updatePaymentStatus(txnid, status, mode);
+    const payment = await PaymentService.findPaymentByTxnid(txnid);
+
+    const now = dayjs();
+
+    let endDate = now.toDate();
+    if (payment?.plan === "monthly") {
+      endDate = now.add(1, "month").toDate();
+    } else if (payment?.plan === "annual") {
+      endDate = now.add(1, "year").toDate();
+    }
+
+    SubscriptionsService.create({
+      userId: payment.userId,
+      plan: payment.plan as "annual" | "monthly",
+      status: "active",
+      price: Number(payment.price),
+      isTrial: false,
+      startDate: now.toDate(),
+      endDate: endDate,
+    });
+
+    res.sendStatus(200);
   } catch (error) {
     console.log(error);
     next(error);

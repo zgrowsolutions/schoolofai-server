@@ -6,8 +6,16 @@ meta {
 
 post {
   url: {{api_baseurl}}/ai365/hooks/easebuzz
-  body: none
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "status":"success",
+    "mode":"DC",
+    "txnid":"b5d4a1a2-70dc-4fc7-8d74-b95a1e40adc1"
+  }
 }
 
 settings {
