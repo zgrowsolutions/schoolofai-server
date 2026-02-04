@@ -84,8 +84,6 @@ export const InitiatePayment = async (
       salt;
     const hash = sha512(hash_string);
 
-    console.log(hash_string);
-
     const callbackurl = `${config.server_url}/ai365/hooks/easebuzz/callback`;
 
     const encodedParams = new URLSearchParams();
@@ -148,8 +146,6 @@ export const EasebuzzHook = async (
 ) => {
   try {
     const { status, txnid, mode } = req.body;
-    console.log("HOOK CALLED");
-    console.log(req.body);
 
     if (status !== "success") return res.sendStatus(200);
 
