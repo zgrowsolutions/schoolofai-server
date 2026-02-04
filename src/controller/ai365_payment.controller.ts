@@ -148,6 +148,8 @@ export const EasebuzzHook = async (
 ) => {
   try {
     const { status, txnid, mode } = req.body;
+    console.log("HOOK CALLED");
+    console.log(req.body);
 
     if (status !== "success") return res.sendStatus(200);
 
