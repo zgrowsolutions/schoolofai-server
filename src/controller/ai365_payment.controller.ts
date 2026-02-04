@@ -10,6 +10,40 @@ import { PaymentService } from "../service/ai365_payment.service";
 import { SubscriptionsService } from "../service/ai365_subscriptions.service";
 import dayjs from "dayjs";
 
+type PlanProps = "monthly" | "annual";
+interface GetHashProps {
+  key: string;
+  txnid: string;
+  amount: string;
+  productinfo: string;
+  firstname: string;
+  email: string;
+  udf1: string;
+  udf2: string;
+  udf3: string;
+  udf4: string;
+  udf5: string;
+  udf6: string;
+  udf7: string;
+  udf8: string;
+  udf9: string;
+  udf10: string;
+  salt: string;
+}
+
+const get_price = (plan: PlanProps): number | false => {
+  const MONTHLY_PRICE = 299;
+  const ANNUAL_PRICE = 2999;
+  if (plan === "monthly") return MONTHLY_PRICE;
+  if (plan === "annual") return ANNUAL_PRICE;
+  return false;
+};
+
+const getHash = (data: GetHashProps) => {
+  const hash_string = `${data.key}|${data.txnid}|${data.amount}|${data.productinfo}|${data.firstname}|${data.email}|${data.udf1}|${data.udf2}|${data.udf3}|${data.udf4}|${data.udf5}|${data.udf6}|${data.udf7}|${data.udf8}|${data.udf9}|${data.udf10}|${data.salt}`;
+  return sha512(hash_string);
+};
+
 export const InitiatePayment = async (
   req: Request,
   res: Response,
@@ -18,85 +52,49 @@ export const InitiatePayment = async (
   try {
     const userId = req.user?.id;
     const { plan } = req.body;
-    if (plan !== "monthly" && plan !== "annual")
-      throw createHttpError[400]("Invalid plan");
 
+    const price = get_price(plan);
+    if (!price) throw createHttpError[400]("Invalid plan");
     if (!userId) throw createHttpError[400]("User not found");
+
     const user = await UserService.findUserById(userId);
     if (!user) throw createHttpError[400]("User not found");
 
-    let price = 100;
-    if (plan === "monthly") price = 299;
-    else if (plan === "annual") price = 2999;
-
     const txn_id = uuidv4();
-    const key = config.easebuzz_key,
-      txnid = txn_id,
-      amount = price,
-      productinfo = "AI365",
-      firstname = "Pugazhenthi",
-      email = "pugazhonline@gmail.com",
-      udf1 = "",
-      udf2 = "",
-      udf3 = "",
-      udf4 = "",
-      udf5 = "",
-      udf6 = "",
-      udf7 = "",
-      udf8 = "",
-      udf9 = "",
-      udf10 = "",
-      salt = config.easebuzz_salt;
 
-    const hash_string =
-      key +
-      "|" +
-      txnid +
-      "|" +
-      amount +
-      "|" +
-      productinfo +
-      "|" +
-      firstname +
-      "|" +
-      email +
-      "|" +
-      udf1 +
-      "|" +
-      udf2 +
-      "|" +
-      udf3 +
-      "|" +
-      udf4 +
-      "|" +
-      udf5 +
-      "|" +
-      udf6 +
-      "|" +
-      udf7 +
-      "|" +
-      udf8 +
-      "|" +
-      udf9 +
-      "|" +
-      udf10 +
-      "|" +
-      salt;
-    const hash = sha512(hash_string);
+    const hashData = {
+      key: config.easebuzz_key,
+      txnid: txn_id,
+      amount: String(price),
+      productinfo: "AI365",
+      firstname: user.name,
+      email: user.email,
+      udf1: "",
+      udf2: "",
+      udf3: "",
+      udf4: "",
+      udf5: "",
+      udf6: "",
+      udf7: "",
+      udf8: "",
+      udf9: "",
+      udf10: "",
+      salt: config.easebuzz_salt,
+    };
 
     const callbackurl = `${config.server_url}/ai365/hooks/easebuzz/callback`;
 
     const encodedParams = new URLSearchParams();
-    encodedParams.set("key", config.easebuzz_key);
-    encodedParams.set("txnid", txnid);
-    encodedParams.set("amount", String(amount));
-    encodedParams.set("productinfo", productinfo);
-    encodedParams.set("firstname", firstname);
-    encodedParams.set("phone", String(9976412129));
-    encodedParams.set("email", email);
+    encodedParams.set("key", hashData.key);
+    encodedParams.set("txnid", hashData.txnid);
+    encodedParams.set("amount", hashData.amount);
+    encodedParams.set("productinfo", hashData.productinfo);
+    encodedParams.set("firstname", hashData.firstname);
+    encodedParams.set("phone", user.mobile);
+    encodedParams.set("email", hashData.email);
     encodedParams.set("surl", callbackurl);
     encodedParams.set("furl", callbackurl);
-    encodedParams.set("hash", hash);
+    encodedParams.set("hash", getHash(hashData));
 
     const url =
       config.easebuzz_env === "live"
@@ -117,9 +115,9 @@ export const InitiatePayment = async (
 
     await PaymentService.createPayment({
       userId: user.id,
-      txnid: txnid,
+      txnid: hashData.txnid,
       plan: plan,
-      price: String(amount),
+      price: hashData.amount,
       name: user.name,
       email: user.email,
       phone: user.mobile,
