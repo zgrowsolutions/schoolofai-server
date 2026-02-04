@@ -26,7 +26,7 @@ export const InitiatePayment = async (
     if (!user) throw createHttpError[400]("User not found");
 
     let price = 100;
-    if (plan === "monthly") price = 5;
+    if (plan === "monthly") price = 1;
     else if (plan === "annual") price = 2999;
 
     const txn_id = uuidv4();
