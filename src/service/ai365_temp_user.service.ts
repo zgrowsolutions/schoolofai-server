@@ -1,5 +1,5 @@
 import { db } from "../config/database";
-import { users } from "../db/schema/ai365_user";
+import { users } from "../db/schema/ai365_temp_user";
 import { hashPassword } from "../lib/auth.helper";
 import { InferInsertModel, eq, ne, and, or, ilike, sql } from "drizzle-orm";
 import createHttpError from "http-errors";
@@ -19,7 +19,7 @@ interface ListUserParams {
   search?: string;
 }
 
-export class UserService {
+export class TempUserService {
   static async create(user: NewUser) {
     try {
       const [existingEmail] = await db
@@ -27,27 +27,20 @@ export class UserService {
         .from(users)
         .where(eq(users.email, user.email));
 
+      const hashedPassword = hashPassword(user.password);
+
       if (existingEmail) {
-        throw createHttpError.NotAcceptable(
-          `User already exist with email ${user.email}`,
-        );
+        const updated = await db
+          .update(users)
+          .set({ ...user, password: hashedPassword })
+          .where(eq(users.email, user.email))
+          .returning();
+        return updated[0];
       }
 
-      const [existingMobile] = await db
-        .select()
-        .from(users)
-        .where(eq(users.mobile, user.mobile));
-
-      if (existingMobile) {
-        throw createHttpError.NotAcceptable(
-          `User already exist with mobile ${user.mobile}`,
-        );
-      }
-      const userId = uuidv4();
       const result = await db.insert(users).values({
-        id: userId,
         ...user,
-        password: hashPassword(user.password),
+        password: hashedPassword,
       });
 
       return result;
@@ -183,17 +176,6 @@ export class UserService {
 
   static async findUserById(userId: string) {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
-    return user || null;
-  }
-  static async findUserByEmail(email: string) {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || null;
-  }
-  static async findUserByMobile(mobile: string) {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.mobile, mobile));
     return user || null;
   }
 }
