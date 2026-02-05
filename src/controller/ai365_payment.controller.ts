@@ -4,7 +4,6 @@ import { SubscriptionsService } from "../service/ai365_subscriptions.service";
 import dayjs from "dayjs";
 import { createPayment } from "../lib/payment";
 import createHttpError from "http-errors";
-import { TempUserService } from "../service/ai365_temp_user.service";
 import { UserService } from "../service/ai365_user.service";
 
 export const InitiatePayment = async (
@@ -44,9 +43,7 @@ export const EasebuzzHook = async (
     const payment = await PaymentService.findPaymentByTxnid(txnid);
 
     if (udf1 === "NEW_USER") {
-      const tempUser = await TempUserService.findUserById(payment.userId);
-      await UserService.create(tempUser);
-      await TempUserService.delete(tempUser.id);
+      await UserService.moveUserFromTemp(payment.userId);
     }
 
     const now = dayjs();

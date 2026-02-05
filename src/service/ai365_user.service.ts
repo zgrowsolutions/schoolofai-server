@@ -4,6 +4,7 @@ import { hashPassword } from "../lib/auth.helper";
 import { InferInsertModel, eq, ne, and, or, ilike, sql } from "drizzle-orm";
 import createHttpError from "http-errors";
 import { v4 as uuidv4 } from "uuid";
+import { TempUserService } from "./ai365_temp_user.service";
 
 type NewUser = InferInsertModel<typeof users>;
 type UpdateUserInput = {
@@ -195,5 +196,11 @@ export class UserService {
       .from(users)
       .where(eq(users.mobile, mobile));
     return user || null;
+  }
+
+  static async moveUserFromTemp(userId: string) {
+    const tempUser = await TempUserService.findUserById(userId);
+    await db.insert(users).values(tempUser);
+    await TempUserService.delete(userId);
   }
 }
