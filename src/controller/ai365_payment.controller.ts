@@ -36,7 +36,6 @@ export const EasebuzzHook = async (
 ) => {
   try {
     const { status, txnid, mode, udf1 } = req.body;
-    console.log("HOOK UDF", udf1);
 
     if (status !== "success") return res.sendStatus(200);
 
