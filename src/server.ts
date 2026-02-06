@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import Router from "./routers";
 import cors from "cors";
 import { errorHandler } from "./middlewares/error_handler.middleware";
-
+import "./events/listener.events";
 const app = express();
 
 app.use(

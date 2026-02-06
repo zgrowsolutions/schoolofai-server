@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { createPayment } from "../lib/payment";
 import createHttpError from "http-errors";
 import { UserService } from "../service/ai365_user.service";
+import appEvents from "../events/app.events";
 
 export const InitiatePayment = async (
   req: Request,
@@ -64,6 +65,13 @@ export const EasebuzzHook = async (
       startDate: now.toDate(),
       endDate: endDate,
     });
+
+    const userdata = {
+      name: payment.name,
+      email: payment.email,
+    };
+
+    appEvents.emit("user_registered", userdata);
 
     res.sendStatus(200);
   } catch (error) {
