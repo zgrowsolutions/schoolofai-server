@@ -105,7 +105,7 @@ export class VideosService {
         .from(videos)
         .where(and(eq(videos.status, "published"), eq(videos.demo, false)));
 
-    console.log(activeSubscription);
+    // console.log(activeSubscription);
     return { demo: freeVideos, premium: premiumVideo };
   }
 }

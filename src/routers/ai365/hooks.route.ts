@@ -7,9 +7,6 @@ Router.post("/easebuzz", EasebuzzHook);
 
 Router.post("/easebuzz/callback", (req: Request, res: Response) => {
   const { status, udf1 } = req.body;
-  console.log(req.body);
-  console.log("......................................");
-  console.log(udf1);
   if (udf1 === "EXISTING_USER") {
     if (status === "success")
       res.redirect("https://app.ai365.schoolofai.io/console/learning");

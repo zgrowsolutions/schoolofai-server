@@ -35,7 +35,7 @@ interface CreatePaymentProps {
   userType: "NEW_USER" | "EXISTING_USER";
 }
 const get_price = (plan: PlanProps): number | false => {
-  const MONTHLY_PRICE = 299;
+  const MONTHLY_PRICE = 1;
   const ANNUAL_PRICE = 2999;
   if (plan === "monthly") return MONTHLY_PRICE;
   if (plan === "annual") return ANNUAL_PRICE;
