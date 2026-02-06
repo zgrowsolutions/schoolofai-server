@@ -4,6 +4,8 @@ const token =
   "Zoho-enczapikey wSsVR60i/RajX6x/mTakLuY7nlhTVgylEB94iwSj6yCoHKzC/MczwRHKBQD0FKMeEW5sE2YR97p4zRgJgDtaiot5wgsEDCiF9mqRe1U4J3x17qnvhDzPWGhflBOIKo0IxQxjnWBmFMEh+g==";
 
 export async function SendWelcomeMMail(name: string, email: string) {
+  console.log("Welcom mail init");
+  console.log(name, email);
   const client = SendMailClient({ url, token });
   client
     .sendMailWithTemplate({
