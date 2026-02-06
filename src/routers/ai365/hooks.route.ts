@@ -17,8 +17,8 @@ Router.post("/easebuzz/callback", (req: Request, res: Response) => {
   }
 
   if (status === "success")
-    res.redirect("https://app.ai365.schoolofai.io/auth/login");
-  else res.redirect("https://ai365.schoolofai.io/signup/payment=failed");
+    res.redirect("https://ai365.schoolofai.io/paymentstatus?status=success");
+  else res.redirect("https://ai365.schoolofai.io/paymentstatus?status=failed");
 });
 
 export default Router;
