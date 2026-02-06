@@ -45,6 +45,12 @@ export const EasebuzzHook = async (
 
     if (udf1 === "NEW_USER") {
       await UserService.moveUserFromTemp(payment.userId);
+      const userdata = {
+        name: payment.name,
+        email: payment.email,
+      };
+
+      appEvents.emit("user_registered", userdata);
     }
 
     const now = dayjs();
@@ -65,13 +71,6 @@ export const EasebuzzHook = async (
       startDate: now.toDate(),
       endDate: endDate,
     });
-
-    const userdata = {
-      name: payment.name,
-      email: payment.email,
-    };
-
-    appEvents.emit("user_registered", userdata);
 
     res.sendStatus(200);
   } catch (error) {
