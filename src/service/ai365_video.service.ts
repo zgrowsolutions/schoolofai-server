@@ -9,6 +9,7 @@ import {
   or,
   isNull,
   InferSelectModel,
+  sql,
 } from "drizzle-orm";
 import { subscriptions } from "../db/schema/ai365_subscription";
 
@@ -95,7 +96,8 @@ export class VideosService {
           lte(subscriptions.startDate, now),
           or(gte(subscriptions.endDate, now), isNull(subscriptions.endDate)),
         ),
-      );
+      )
+      .orderBy(sql`${videos.publish_at} DESC`);
 
     let premiumVideo: Video[] = [];
 
@@ -103,7 +105,8 @@ export class VideosService {
       premiumVideo = await db
         .select()
         .from(videos)
-        .where(and(eq(videos.status, "published"), eq(videos.demo, false)));
+        .where(and(eq(videos.status, "published"), eq(videos.demo, false)))
+        .orderBy(sql`${videos.publish_at} DESC`);
 
     // console.log(activeSubscription);
     return { demo: freeVideos, premium: premiumVideo };
