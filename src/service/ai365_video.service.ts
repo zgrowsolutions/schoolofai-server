@@ -96,8 +96,7 @@ export class VideosService {
           lte(subscriptions.startDate, now),
           or(gte(subscriptions.endDate, now), isNull(subscriptions.endDate)),
         ),
-      )
-      .orderBy(sql`${videos.publish_at} DESC`);
+      );
 
     let premiumVideo: Video[] = [];
 
