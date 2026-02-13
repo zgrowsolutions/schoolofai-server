@@ -84,7 +84,8 @@ export class VideosService {
     const freeVideos = await db
       .select()
       .from(videos)
-      .where(and(eq(videos.demo, true), eq(videos.status, "published")));
+      .where(and(eq(videos.demo, true), eq(videos.status, "published")))
+      .orderBy(sql`${videos.publish_at} DESC`);
 
     const activeSubscription = await db
       .select()
