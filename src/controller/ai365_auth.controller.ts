@@ -46,3 +46,25 @@ export const Update = async (
     next(error);
   }
 };
+
+export const RequestPasswordReset = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const email = req.body.email;
+    const result = await AuthService.requestPasswordReset(email);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const ResetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.body.userId;
+    const token = req.body.token;
+    const newPassword = req.body.password;
+    const result = await AuthService.resetPassword(userId, token, newPassword);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
