@@ -31,3 +31,18 @@ export const FindAll = async (
     next(error);
   }
 };
+
+export const GetSubscriptionCountByDay = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const days = req.query.days ? parseInt(String(req.query.days), 10) : 15;
+    const data = await SubscriptionsService.getSubscriptionCountByDay(days);
+    res.json(data);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};

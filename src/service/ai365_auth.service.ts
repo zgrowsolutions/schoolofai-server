@@ -13,9 +13,7 @@ interface LoginInput {
 export class AuthService {
   static async login({ email, password }: LoginInput) {
     try {
-      console.log("login function called");
-      console.log("email", email);
-      console.log("password", password);
+      
       const result = await db
         .select({
           id: users.id,

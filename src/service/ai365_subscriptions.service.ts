@@ -1,7 +1,7 @@
 import Decimal from "decimal.js";
 import { db } from "../config/database";
 import { subscriptions } from "../db/schema/ai365_subscription";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, gte } from "drizzle-orm";
 import { users } from "../db/schema/ai365_user";
 /** Create subscription input */
 export type CreateSubscriptionInput = {
@@ -155,5 +155,41 @@ export class SubscriptionsService {
   static async delete(id: string) {
     await db.delete(subscriptions).where(eq(subscriptions.id, id));
     return true;
+  }
+
+  /**
+   * Get subscription counts per day for the last N days (for bar chart).
+   * @param days Number of days to include (default 15)
+   * @returns Array of { date: "YYYY-MM-DD", count: number } ordered by date
+   */
+  static async getSubscriptionCountByDay(days: number = 15): Promise<{ date: string; count: number }[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setUTCHours(0, 0, 0, 0);
+
+    const rows = await db
+      .select({
+        date: sql<string>`to_char(${subscriptions.createdAt}::date, 'YYYY-MM-DD')`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(subscriptions)
+      .where(gte(subscriptions.createdAt, startDate))
+      .groupBy(sql`${subscriptions.createdAt}::date`)
+      .orderBy(sql`${subscriptions.createdAt}::date`);
+
+    const countByDate = new Map(rows.map((r) => [r.date, r.count]));
+
+    const result: { date: string; count: number }[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setUTCHours(0, 0, 0, 0);
+      const dateStr = d.toISOString().slice(0, 10);
+      result.push({
+        date: dateStr,
+        count: countByDate.get(dateStr) ?? 0,
+      });
+    }
+    return result;
   }
 }
