@@ -1,8 +1,14 @@
 import Decimal from "decimal.js";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { db } from "../config/database";
 import { subscriptions } from "../db/schema/ai365_subscription";
-import { eq, desc, and, sql, gte } from "drizzle-orm";
+import { eq, desc, and, sql, gte, lte } from "drizzle-orm";
 import { users } from "../db/schema/ai365_user";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 /** Create subscription input */
 export type CreateSubscriptionInput = {
   userId: string;
@@ -163,28 +169,33 @@ export class SubscriptionsService {
    * @returns Array of { date: "YYYY-MM-DD", count: number } ordered by date
    */
   static async getSubscriptionCountByDay(days: number = 15): Promise<{ date: string; count: number }[]> {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-    startDate.setUTCHours(0, 0, 0, 0);
+    const tz = process.env.REPORT_TIMEZONE ?? "Asia/Kolkata";
+    const now = dayjs().tz(tz);
+    const startOfRange = now.subtract(days - 1, "day").startOf("day");
+    const endOfRange = now.endOf("day");
+    const startDate = startOfRange.toDate();
+    const endDate = endOfRange.toDate();
 
-    const rows = await db
-      .select({
-        date: sql<string>`to_char(${subscriptions.createdAt}::date, 'YYYY-MM-DD')`,
-        count: sql<number>`count(*)::int`,
-      })
-      .from(subscriptions)
-      .where(gte(subscriptions.createdAt, startDate))
-      .groupBy(sql`${subscriptions.createdAt}::date`)
-      .orderBy(sql`${subscriptions.createdAt}::date`);
+    // Use CTE so the date expression is defined once; otherwise PG rejects GROUP BY
+    // (Drizzle emits separate params for same expr in SELECT vs GROUP BY).
+    const res = await db.execute(sql`
+      WITH sub AS (
+        SELECT (created_at AT TIME ZONE ${tz})::date AS d
+        FROM subscriptions
+        WHERE created_at >= ${startDate} AND created_at <= ${endDate}
+      )
+      SELECT to_char(sub.d, 'YYYY-MM-DD') AS date, count(*)::int AS count
+      FROM sub
+      GROUP BY sub.d
+      ORDER BY sub.d
+    `);
+    const rows = ((res as unknown) as { rows: { date: string; count: number }[] }).rows;
 
     const countByDate = new Map(rows.map((r) => [r.date, r.count]));
 
     const result: { date: string; count: number }[] = [];
     for (let i = days - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setUTCHours(0, 0, 0, 0);
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = now.subtract(i, "day").format("YYYY-MM-DD");
       result.push({
         date: dateStr,
         count: countByDate.get(dateStr) ?? 0,
