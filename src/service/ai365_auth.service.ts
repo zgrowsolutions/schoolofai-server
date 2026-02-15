@@ -10,15 +10,12 @@ interface LoginInput {
   password: string;
 }
 
-interface PasswordResetInput {
-  userId: string;
-  oldPassword: string;
-  newPassword: string;
-}
-
 export class AuthService {
   static async login({ email, password }: LoginInput) {
     try {
+      console.log("login function called");
+      console.log("email", email);
+      console.log("password", password);
       const result = await db
         .select({
           id: users.id,
@@ -27,7 +24,7 @@ export class AuthService {
           name: users.name,
         })
         .from(users)
-        .where(sql`${users.email} = ${email}`);
+        .where(sql`lower(${users.email}) = lower(${email})`);
 
       if (result.length === 0) {
         throw new createHttpError.NotFound("Invalid email or password");
@@ -74,7 +71,7 @@ export class AuthService {
       const [result] = await db
         .select()
         .from(users)
-        .where(eq(users.email, email));
+        .where(sql`lower(${users.email}) = lower(${email})`);
       if (!result) {
         throw new createHttpError.NotFound("User not found");
       }
