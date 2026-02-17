@@ -150,7 +150,11 @@ export class VideosService {
       premiumVideo = await db
       .select()
       .from(videos)
-      .where(and(eq(videos.status, "published"), eq(videos.demo, false)))
+      .where(and(
+        eq(videos.status, "published"), 
+        eq(videos.demo, false), 
+        lte(videos.publish_at, now)
+      ))
       .orderBy(sql`${videos.publish_at} ASC`).limit(totalSubscriptionDays + 1);
     }
 
