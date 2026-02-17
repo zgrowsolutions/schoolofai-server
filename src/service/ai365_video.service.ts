@@ -78,8 +78,44 @@ export class VideosService {
     return true;
   }
 
+  // static async findVideosByUser(userId: string) {
+  //   const now = new Date();
+
+  //   const freeVideos = await db
+  //     .select()
+  //     .from(videos)
+  //     .where(and(eq(videos.demo, true), eq(videos.status, "published")))
+  //     .orderBy(sql`${videos.publish_at} DESC`);
+
+  //   const activeSubscription = await db
+  //     .select()
+  //     .from(subscriptions)
+  //     .where(
+  //       and(
+  //         eq(subscriptions.userId, userId),
+  //         eq(subscriptions.status, "active"),
+  //         lte(subscriptions.startDate, now),
+  //         or(gte(subscriptions.endDate, now), isNull(subscriptions.endDate)),
+  //       ),
+  //     );
+
+  //   let premiumVideo: Video[] = [];
+
+  //   if (activeSubscription.length > 0)
+  //     premiumVideo = await db
+  //       .select()
+  //       .from(videos)
+  //       .where(and(eq(videos.status, "published"), eq(videos.demo, false)))
+  //       .orderBy(sql`${videos.publish_at} DESC`);
+
+  //   // console.log(activeSubscription);
+    
+  //   return { demo: freeVideos, premium: premiumVideo };
+  // }
+
   static async findVideosByUser(userId: string) {
     const now = new Date();
+    let totalSubscriptionDays = 0;
 
     const freeVideos = await db
       .select()
@@ -87,7 +123,7 @@ export class VideosService {
       .where(and(eq(videos.demo, true), eq(videos.status, "published")))
       .orderBy(sql`${videos.publish_at} DESC`);
 
-    const activeSubscription = await db
+    const [activeSubscription] = await db
       .select()
       .from(subscriptions)
       .where(
@@ -97,18 +133,29 @@ export class VideosService {
           lte(subscriptions.startDate, now),
           or(gte(subscriptions.endDate, now), isNull(subscriptions.endDate)),
         ),
-      );
+      ).limit(1);
+
+      
 
     let premiumVideo: Video[] = [];
 
-    if (activeSubscription.length > 0)
+    if (activeSubscription) {
+      const expiredDays = await db.execute(sql`SELECT sum(end_date::date - start_date::date) AS days_count FROM subscriptions where end_date < now() and user_id=${userId}`)
+      .then((res) => res.rows[0].days_count) as number;
+      const activeDays = await db.execute(sql`SELECT (now()::date - start_date::date) AS days_count FROM subscriptions where end_date > now() and user_id=${userId} limit 1`)
+      .then((res) => res.rows[0].days_count) as number;
+      totalSubscriptionDays = Number(expiredDays) + Number(activeDays);
+      
+      
       premiumVideo = await db
-        .select()
-        .from(videos)
-        .where(and(eq(videos.status, "published"), eq(videos.demo, false)))
-        .orderBy(sql`${videos.publish_at} DESC`);
+      .select()
+      .from(videos)
+      .where(and(eq(videos.status, "published"), eq(videos.demo, false)))
+      .orderBy(sql`${videos.publish_at} ASC`).limit(totalSubscriptionDays + 1);
+    }
 
     // console.log(activeSubscription);
-    return { demo: freeVideos, premium: premiumVideo };
+    
+    return { demo: freeVideos, premium: premiumVideo.reverse() };
   }
 }
