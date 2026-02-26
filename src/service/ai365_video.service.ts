@@ -109,7 +109,7 @@ export class VideosService {
   //       .orderBy(sql`${videos.publish_at} DESC`);
 
   //   // console.log(activeSubscription);
-    
+
   //   return { demo: freeVideos, premium: premiumVideo };
   // }
 
@@ -133,33 +133,40 @@ export class VideosService {
           lte(subscriptions.startDate, now),
           or(gte(subscriptions.endDate, now), isNull(subscriptions.endDate)),
         ),
-      ).limit(1);
-
-      
+      )
+      .limit(1);
 
     let premiumVideo: Video[] = [];
 
     if (activeSubscription) {
-      const expiredDays = await db.execute(sql`SELECT sum(end_date::date - start_date::date) AS days_count FROM subscriptions where end_date < now() and user_id=${userId}`)
-      .then((res) => res.rows[0].days_count) as number;
-      const activeDays = await db.execute(sql`SELECT (now()::date - start_date::date) AS days_count FROM subscriptions where end_date > now() and user_id=${userId} limit 1`)
-      .then((res) => res.rows[0].days_count) as number;
+      const expiredDays = (await db
+        .execute(
+          sql`SELECT sum(end_date::date - start_date::date) AS days_count FROM subscriptions where end_date < now() and user_id=${userId}`,
+        )
+        .then((res) => res.rows[0].days_count)) as number;
+      const activeDays = (await db
+        .execute(
+          sql`SELECT (now()::date - start_date::date) AS days_count FROM subscriptions where end_date > now() and user_id=${userId} limit 1`,
+        )
+        .then((res) => res.rows[0].days_count)) as number;
       totalSubscriptionDays = Number(expiredDays) + Number(activeDays);
-      
-      
+
       premiumVideo = await db
-      .select()
-      .from(videos)
-      .where(and(
-        eq(videos.status, "published"), 
-        eq(videos.demo, false), 
-        lte(videos.publish_at, now)
-      ))
-      .orderBy(sql`${videos.publish_at} ASC`).limit(totalSubscriptionDays + 1);
+        .select()
+        .from(videos)
+        .where(
+          and(
+            eq(videos.status, "published"),
+            eq(videos.demo, false),
+            lte(videos.publish_at, now),
+          ),
+        )
+        .orderBy(sql`${videos.publish_at} ASC`)
+        .limit(totalSubscriptionDays + 2);
     }
 
     // console.log(activeSubscription);
-    
+
     return { demo: freeVideos, premium: premiumVideo.reverse() };
   }
 }
