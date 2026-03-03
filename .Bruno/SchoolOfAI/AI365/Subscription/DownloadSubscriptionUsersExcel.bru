@@ -1,0 +1,20 @@
+meta {
+  name: DownloadSubscriptionUsersExcel
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{api_baseurl}}/admin/ai365/subscriptions/download-users-excel
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

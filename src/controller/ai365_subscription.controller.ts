@@ -46,3 +46,21 @@ export const GetSubscriptionCountByDay = async (
     next(error);
   }
 };
+
+/** Download users with active/inactive subscription as Excel (date-based, not status field) */
+export const DownloadSubscriptionUsersExcel = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const buffer = await SubscriptionsService.buildSubscriptionUsersExcel();
+    const filename = `subscription-users-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};

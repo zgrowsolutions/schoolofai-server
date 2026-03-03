@@ -2,9 +2,10 @@ import Decimal from "decimal.js";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import ExcelJS from "exceljs";
 import { db } from "../config/database";
 import { subscriptions } from "../db/schema/ai365_subscription";
-import { eq, desc, and, sql, gte, lte } from "drizzle-orm";
+import { eq, desc, and, or, sql, gte, lte, inArray, isNull } from "drizzle-orm";
 import { users } from "../db/schema/ai365_user";
 
 dayjs.extend(utc);
@@ -161,6 +162,161 @@ export class SubscriptionsService {
   static async delete(id: string) {
     await db.delete(subscriptions).where(eq(subscriptions.id, id));
     return true;
+  }
+
+  /**
+   * Subscription status is derived from date range only: active = at least one
+   * subscription where current date is between start_date and end_date (inclusive).
+   * Does not use the status field on the subscription table.
+   */
+  static async getUsersWithActiveSubscription(): Promise<
+    { name: string; email: string; mobile: string; fromDate: Date | null; toDate: Date | null }[]
+  > {
+    // Use DB current date so active/inactive use the same "today" (avoids timezone mismatch)
+    const rows = await db
+      .select({
+        name: users.name,
+        email: users.email,
+        mobile: users.mobile,
+        fromDate: subscriptions.startDate,
+        toDate: subscriptions.endDate,
+      })
+      .from(users)
+      .innerJoin(subscriptions, eq(subscriptions.userId, users.id))
+      .where(
+        and(
+          sql`(${subscriptions.startDate})::date <= CURRENT_DATE`,
+          or(isNull(subscriptions.endDate), sql`(${subscriptions.endDate})::date >= CURRENT_DATE`),
+        ),
+      )
+      .orderBy(desc(subscriptions.endDate));
+
+    // One row per user: keep first (latest end_date) per user
+    const byUser = new Map<string, (typeof rows)[0]>();
+    for (const r of rows) {
+      const key = r.email;
+      if (!byUser.has(key)) byUser.set(key, r);
+    }
+    return Array.from(byUser.values()).map((r) => ({
+      name: r.name,
+      email: r.email,
+      mobile: r.mobile,
+      fromDate: r.fromDate,
+      toDate: r.toDate,
+    }));
+  }
+
+  /**
+   * Users with no subscription where current date is between start_date and end_date.
+   * Includes users with no subscriptions or only past/future subscriptions.
+   */
+  static async getUsersWithInactiveSubscription(): Promise<
+    { name: string; email: string; mobile: string; fromDate: Date | null; toDate: Date | null }[]
+  > {
+    // Same date rule as active: use DB CURRENT_DATE so lists are disjoint
+    const activeUserIds = await db
+      .selectDistinct({ userId: subscriptions.userId })
+      .from(subscriptions)
+      .where(
+        and(
+          sql`(${subscriptions.startDate})::date <= CURRENT_DATE`,
+          or(isNull(subscriptions.endDate), sql`(${subscriptions.endDate})::date >= CURRENT_DATE`),
+        ),
+      );
+
+    // Normalize to string so Set lookup matches (pg can return uuid as string or buffer)
+    const activeIds = new Set(activeUserIds.map((r) => String(r.userId)));
+    const allUsers = await db.select({ id: users.id, name: users.name, email: users.email, mobile: users.mobile }).from(users);
+    const inactiveUsers = allUsers.filter((u) => !activeIds.has(String(u.id)));
+
+    if (inactiveUsers.length === 0) {
+      return [];
+    }
+
+    const userIds = inactiveUsers.map((u) => u.id);
+    const latestSubs = await db
+      .select({
+        userId: subscriptions.userId,
+        startDate: subscriptions.startDate,
+        endDate: subscriptions.endDate,
+      })
+      .from(subscriptions)
+      .where(inArray(subscriptions.userId, userIds))
+      .orderBy(desc(subscriptions.endDate));
+
+    const subByUser = new Map<string, { startDate: Date; endDate: Date | null }>();
+    for (const s of latestSubs) {
+      const key = String(s.userId);
+      if (!subByUser.has(key)) {
+        subByUser.set(key, { startDate: s.startDate, endDate: s.endDate });
+      }
+    }
+
+    return inactiveUsers.map((u) => {
+      const sub = subByUser.get(String(u.id));
+      return {
+        name: u.name,
+        email: u.email,
+        mobile: u.mobile,
+        fromDate: sub?.startDate ?? null,
+        toDate: sub?.endDate ?? null,
+      };
+    });
+  }
+
+  /**
+   * Build Excel workbook with two sheets: Active Subscriptions, Inactive Subscriptions.
+   * Columns: name, email, mobile, active subscription from date, to date.
+   * Active/inactive is based on current date being between start_date and end_date (not status field).
+   */
+  static async buildSubscriptionUsersExcel(): Promise<Buffer> {
+    const [activeRows, inactiveRows] = await Promise.all([
+      SubscriptionsService.getUsersWithActiveSubscription(),
+      SubscriptionsService.getUsersWithInactiveSubscription(),
+    ]);
+
+    const workbook = new ExcelJS.Workbook();
+
+    const formatDate = (d: Date | null) => (d ? dayjs(d).format("YYYY-MM-DD") : "");
+
+    const activeSheet = workbook.addWorksheet("Active Subscriptions");
+    activeSheet.columns = [
+      { header: "Name", key: "name", width: 30 },
+      { header: "Email", key: "email", width: 35 },
+      { header: "Mobile", key: "mobile", width: 16 },
+      { header: "Active subscription from date", key: "fromDate", width: 24 },
+      { header: "Active subscription to date", key: "toDate", width: 24 },
+    ];
+    activeRows.forEach((r) => {
+      activeSheet.addRow({
+        name: r.name,
+        email: r.email,
+        mobile: r.mobile,
+        fromDate: formatDate(r.fromDate),
+        toDate: formatDate(r.toDate),
+      });
+    });
+
+    const inactiveSheet = workbook.addWorksheet("Inactive Subscriptions");
+    inactiveSheet.columns = [
+      { header: "Name", key: "name", width: 30 },
+      { header: "Email", key: "email", width: 35 },
+      { header: "Mobile", key: "mobile", width: 16 },
+      { header: "Last subscription from date", key: "fromDate", width: 28 },
+      { header: "Last subscription to date", key: "toDate", width: 28 },
+    ];
+    inactiveRows.forEach((r) => {
+      inactiveSheet.addRow({
+        name: r.name,
+        email: r.email,
+        mobile: r.mobile,
+        fromDate: formatDate(r.fromDate),
+        toDate: formatDate(r.toDate),
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
   }
 
   /**
