@@ -4,7 +4,41 @@ import { TempUserService } from "../service/ai365_temp_user.service";
 
 import { v4 as uuidv4 } from "uuid";
 import createHttpError from "http-errors";
-import { createPayment } from "../lib/payment";
+// import { createPayment } from "../lib/payment";
+import { createRzpSubscripotion } from "../lib/rzp_payment";
+import { config } from "../config/env";
+
+// export const TempCreate = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const { plan } = req.body;
+//     const email_exist = await UserService.findUserByEmail(req.body.email);
+//     if (email_exist !== null)
+//       throw createHttpError[400](
+//         `User with email ${req.body.email} already exist`,
+//       );
+//     const mobile_exist = await UserService.findUserByMobile(req.body.mobile);
+//     if (mobile_exist !== null)
+//       throw createHttpError[400](
+//         `User with mobile ${req.body.mobile} already exist`,
+//       );
+
+//     const userId = uuidv4();
+//     await TempUserService.create({ id: userId, ...req.body });
+//     const payment_url = await createPayment({
+//       userId,
+//       plan,
+//       userType: "NEW_USER",
+//     });
+
+//     res.json({ payment_url });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 export const TempCreate = async (
   req: Request,
@@ -26,14 +60,33 @@ export const TempCreate = async (
 
     const userId = uuidv4();
     await TempUserService.create({ id: userId, ...req.body });
-    const payment_url = await createPayment({
+
+    const subscription = await createRzpSubscripotion({
+      planId: config.rzp_monthly_plan_id,
+      totalCount: 60,
+      plan: plan,
+      amount: 5,
       userId,
-      plan,
-      userType: "NEW_USER",
+      name: req.body.name,
+      email: req.body.email,
+      mobile: req.body.mobile,
+      isNew: "1",
     });
 
-    res.json({ payment_url });
+    const payload = {
+      key: config.rzp_key_id,
+      subscription_id: subscription.subscriptionId,
+      name: "AI365",
+      description: "AI365 Monthly Subscription",
+      prefill: {
+        name: req.body.name,
+        email: req.body.email,
+        contact: req.body.mobile,
+      },
+    };
+    res.json(payload);
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };

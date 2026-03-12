@@ -18,4 +18,8 @@ export const config = {
   easebuzz_key: process.env.EASEBUZZ_KEY ?? "",
   easebuzz_salt: process.env.EASEBUZZ_SALT ?? "",
   easebuzz_env: process.env.EASEBUZZ_ENV ?? "test",
+  rzp_key_id: process.env.RZP_KEY_ID ?? "",
+  rzp_key_secret: process.env.RZP_KEY_SECRET ?? "",
+  rzp_monthly_plan_id: process.env.RZP_MONTHLY_PLAN_ID ?? "",
+  rzp_hook_secret: process.env.RZP_HOOK_SECRET ?? "",
 };

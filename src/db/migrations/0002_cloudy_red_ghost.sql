@@ -1,0 +1,20 @@
+CREATE TABLE "ai365_rzp_subscription" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"plan_id" varchar(64),
+	"subscription_id" varchar(100),
+	"subscription_status" varchar(25),
+	"current_start" bigint,
+	"current_end" bigint,
+	"paln" varchar(15) NOT NULL,
+	"amount" numeric(10, 2) NOT NULL,
+	"currency" varchar(15),
+	"method" varchar(25),
+	"user_id" uuid NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"email" varchar(150) NOT NULL,
+	"mobile" varchar(15) NOT NULL,
+	"payment_id" varchar(100),
+	"payment_status" varchar(25),
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);

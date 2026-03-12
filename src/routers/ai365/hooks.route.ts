@@ -1,5 +1,8 @@
 import express, { Request, Response } from "express";
-import { EasebuzzHook } from "../../controller/ai365_payment.controller";
+import {
+  EasebuzzHook,
+  RzpHook,
+} from "../../controller/ai365_payment.controller";
 
 const Router = express.Router();
 
@@ -20,5 +23,7 @@ Router.post("/easebuzz/callback", (req: Request, res: Response) => {
     res.redirect("https://ai365.schoolofai.io/paymentstatus?status=success");
   else res.redirect("https://ai365.schoolofai.io/paymentstatus?status=failed");
 });
+
+Router.post("/razorpay", RzpHook);
 
 export default Router;

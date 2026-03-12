@@ -200,7 +200,9 @@ export class UserService {
 
   static async moveUserFromTemp(userId: string) {
     const tempUser = await TempUserService.findUserById(userId);
-    await db.insert(users).values(tempUser);
-    await TempUserService.delete(userId);
+    if (tempUser) {
+      await db.insert(users).values(tempUser);
+      await TempUserService.delete(userId);
+    }
   }
 }

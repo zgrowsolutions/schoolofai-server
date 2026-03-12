@@ -1,8 +1,12 @@
 import { db } from "../config/database";
 import { payment } from "../db/schema/ai365_payment";
 import { eq, InferInsertModel } from "drizzle-orm";
+import { rzpPayment } from "../db/schema/ai365_rzp_payment";
+import { rzpSubscription } from "../db/schema/ai365_rzp_subscription";
 
 type CreatePaymentInput = InferInsertModel<typeof payment>;
+type CreateRzpPaymentInput = InferInsertModel<typeof rzpPayment>;
+type CreateRzpSubscriptionInput = InferInsertModel<typeof rzpSubscription>;
 
 export class PaymentService {
   static async createPayment(data: CreatePaymentInput) {
@@ -68,4 +72,45 @@ export class PaymentService {
 
   //     return payment;
   //   }
+
+  static async createRzpPayment(data: CreateRzpPaymentInput) {
+    const [result] = await db
+      .insert(rzpPayment)
+      .values({
+        subscriptionId: data.subscriptionId,
+        plan: data.plan,
+        amount: data.amount,
+        userId: data.userId,
+        name: data.name,
+        email: data.email,
+        mobile: data.mobile,
+      })
+      .returning();
+
+    return result;
+  }
+
+  static async craeteRzpSubscription(data: CreateRzpSubscriptionInput) {
+    const [result] = await db
+      .insert(rzpSubscription)
+      .values({
+        planId: data.planId,
+        subscriptionId: data.subscriptionId,
+        subscriptionStatus: data.subscriptionStatus,
+        currentStart: data.currentStart,
+        currentEnd: data.currentEnd,
+        plan: data.plan,
+        amount: data.amount,
+        currency: data.currency,
+        method: data.method,
+        userId: data.userId,
+        name: data.name,
+        email: data.email,
+        mobile: data.mobile,
+        paymentId: data.paymentId,
+        paymentStatus: data.paymentStatus,
+      })
+      .returning();
+    return result;
+  }
 }
